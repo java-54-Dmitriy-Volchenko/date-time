@@ -8,36 +8,57 @@ import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
 import java.util.Locale;
 
-record MonthYear(int month, int year) {
+import telran.util.Arrays;
+
+record MonthYearStartPoint(int month, int year, String startPoint) {
 	
 }
 public class PrintCalendar {
 
 	private static final int TITLE_OFFSET = 5;
 	private static final int COLUMN_WIDTH = 4;
+	private enum WeekDayNames {
+        MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
+	
 	private static DayOfWeek[] weekDays = DayOfWeek.values();
+	
+	//ready
 	public static void main(String[] args)  {
 		try {
-			MonthYear monthYear = getMonthYear(args);
-			printCalendar(monthYear);
+			MonthYearStartPoint monthYearStartPoint = getMonthYearStartPoint(args);
+			printCalendar(monthYearStartPoint);
 		} catch (RuntimeException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 	}
-
-	private static  MonthYear getMonthYear(String[] args) throws Exception{
+//ready
+	private static  MonthYearStartPoint getMonthYearStartPoint(String[] args) throws Exception{
 		int monthNumber = getMonth(args);
 		int year = getYear(args);
-		return new MonthYear(monthNumber, year);
+		String startPoint = getStartPoint(args);
+		return new MonthYearStartPoint(monthNumber, year, startPoint);
 	}
-
+//ready
+	private static String getStartPoint(String[] args) throws Exception {
+	    if (args.length < 3) {
+	        throw new Exception("Start day of the week is missing");
+	    }
+	    String startPoint = args[2].toUpperCase(); 
+	    try {
+	        WeekDayNames.valueOf(startPoint); 
+	        return startPoint;
+	    } catch (IllegalArgumentException e) {
+	        throw new Exception("Invalid start day of the week");
+	    }
+	}
+//ready
 	private static int getYear(String[] args) throws Exception {
 		int year = args.length < 2 ? getCurrentYear() : getYear(args[1]);
 		return year;
 	}
-
+//ready
 	private static int getYear(String yearStr) throws Exception {
 		try {
 			int res = Integer.parseInt(yearStr);
@@ -47,17 +68,18 @@ public class PrintCalendar {
 		}
 		
 	}
-
+//ready
 	private static int getCurrentYear() {
 		
 		return LocalDate.now().getYear();
 	}
 
+	//ready
 	private static int getMonth(String[] args) throws Exception{
 		int month = args.length == 0 ? getCurrentMonth() : getMonthNumber(args[0]);
 		return month;
 	}
-
+// ready
 	private static int getMonthNumber(String monthStr)throws Exception {
 		try {
 			int result = Integer.parseInt(monthStr);
@@ -72,24 +94,26 @@ public class PrintCalendar {
 			throw new Exception("Month must be a number");
 		}
 	}
-
+//ready
 	private static int getCurrentMonth() {
 		
 		return LocalDate.now().get(ChronoField.MONTH_OF_YEAR);
 	}
 
-	private static void printCalendar(MonthYear monthYear) {
-		printTitle(monthYear);
-		printWeekDays();
-		printDays(monthYear);
+	
+	private static void printCalendar(MonthYearStartPoint monthYearStartPoint) {
+		printTitle(monthYearStartPoint);
+		printWeekDays(monthYearStartPoint);
+		printDays(monthYearStartPoint);
 		
 		
 	}
 
-	private static void printDays(MonthYear monthYear) {
-		int nDays = getDaysInMonth(monthYear);
-		int currentWeekDay = getFirstDayOfMonth(monthYear);
-		int firstOffset = getFirstOffset(currentWeekDay);
+	private static void printDays(MonthYearStartPoint monthYearStartPoint) {
+		//TODO
+		int nDays = getDaysInMonth(monthYearStartPoint);
+		int currentWeekDay = getFirstDayOfMonth(monthYearStartPoint);
+		int firstOffset = getFirstOffset(currentWeekDay, monthYearStartPoint);
 		System.out.printf("%s", " ".repeat(firstOffset));
 		for(int day = 1; day <= nDays; day++) {
 			System.out.printf("%" + COLUMN_WIDTH +"d", day);
@@ -101,40 +125,58 @@ public class PrintCalendar {
 		}
 		
 	}
-
-	private static int getFirstOffset(int currentWeekDay) {
-		
-		return COLUMN_WIDTH * (currentWeekDay - 1);
+//ready
+	private static int getFirstOffset(int currentWeekDay, MonthYearStartPoint monthYearStartPoint) {
+	    int startPointIndex = getStartIndex(monthYearStartPoint); ;
+	    int firstWeekDayIndex = (currentWeekDay - 1 - startPointIndex + 7) % 7; // Вычисляем индекс первого дня месяца в упорядоченном массиве дней недели
+	    return COLUMN_WIDTH * firstWeekDayIndex;
 	}
 
-	private static int getFirstDayOfMonth(MonthYear monthYear) {
-		LocalDate ld = LocalDate.of(monthYear.year(), monthYear.month(),
+
+	//ready
+	private static int getFirstDayOfMonth(MonthYearStartPoint monthYearStartPoint) {
+		LocalDate ld = LocalDate.of(monthYearStartPoint.year(), monthYearStartPoint.month(),
 				1);
 		return ld.get(ChronoField.DAY_OF_WEEK);
 	}
-
-	private static int getDaysInMonth(MonthYear monthYear) {
-		YearMonth ym = YearMonth.of(monthYear.year(), monthYear.month());
+	//ready
+	private static int getDaysInMonth(MonthYearStartPoint monthYearStartPoint) {
+		YearMonth ym = YearMonth.of(monthYearStartPoint.year(), monthYearStartPoint.month());
 		return ym.lengthOfMonth();
 	}
 
-	private static void printWeekDays() {
-		System.out.printf("%s", " ".repeat(1));
-		for(DayOfWeek weekday: weekDays) {
-			System.out.printf("%" + COLUMN_WIDTH +"s",weekday.getDisplayName(TextStyle.SHORT,
-					Locale.forLanguageTag("en")));
-			
-		}
-		System.out.println();
-		
+	//ready
+	private static void printWeekDays(MonthYearStartPoint monthYearStartPoint) {
+	    System.out.printf("%s", " ".repeat(1));    
+	    
+	    DayOfWeek[] sortedWeekDays = new DayOfWeek[7];	   
+	    int startIndex = getStartIndex(monthYearStartPoint); 
+	    for (int i = 0; i < 7; i++) {
+	        sortedWeekDays[i] = DayOfWeek.of((startIndex + i) % 7 + 1);
+	    }
+	     
+	   
+	    for (DayOfWeek weekday : sortedWeekDays) {
+	        System.out.printf("%" + COLUMN_WIDTH + "s", weekday.getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+	    }
+	    System.out.println();
 	}
-
-	private static void printTitle(MonthYear monthYear) {
-		String monthName = Month.of(monthYear.month())
+		
+	
+	//ready
+	private static void printTitle(MonthYearStartPoint monthYearStartPoint) {
+		String monthName = Month.of(monthYearStartPoint.month())
 				.getDisplayName(TextStyle.FULL, Locale.getDefault());
-		System.out.printf("%s%s %d\n"," ".repeat(TITLE_OFFSET), monthName, monthYear.year());
+		System.out.printf("%s%s %d\n"," ".repeat(TITLE_OFFSET), monthName, monthYearStartPoint.year());
 		
 		
 	}
-
+	
+	//ready
+	private static int getStartIndex(MonthYearStartPoint monthYearStartPoint) {
+		 DayOfWeek startPoint = DayOfWeek.valueOf(monthYearStartPoint.startPoint().toUpperCase());
+		 int startIndex = startPoint.getValue() - 1; 
+		return startIndex;
+	}
+	
 }
