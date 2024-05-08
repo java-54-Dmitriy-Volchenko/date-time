@@ -127,7 +127,7 @@ public class PrintCalendar {
 //ready
 	private static int getFirstOffset(int currentWeekDay, MonthYearStartPoint monthYearStartPoint) {
 	    int startPointIndex = getStartIndex(monthYearStartPoint); ;
-	    int firstWeekDayIndex = (currentWeekDay - 1 - startPointIndex + 7) % 7; // Вычисляем индекс первого дня месяца в упорядоченном массиве дней недели
+	    int firstWeekDayIndex = (currentWeekDay - 1 - startPointIndex + 7) % 7; 
 	    return COLUMN_WIDTH * firstWeekDayIndex;
 	}
 
