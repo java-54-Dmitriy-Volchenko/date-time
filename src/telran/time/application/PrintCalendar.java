@@ -8,7 +8,7 @@ import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
 import java.util.Locale;
 
-import telran.util.Arrays;
+
 
 record MonthYearStartPoint(int month, int year, String startPoint) {
 	
@@ -20,7 +20,7 @@ public class PrintCalendar {
 	private enum WeekDayNames {
         MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
 	
-	private static DayOfWeek[] weekDays = DayOfWeek.values();
+	
 	
 	//ready
 	public static void main(String[] args)  {
@@ -108,23 +108,22 @@ public class PrintCalendar {
 		
 		
 	}
-
-	private static void printDays(MonthYearStartPoint monthYearStartPoint) {
-		//TODO
-		int nDays = getDaysInMonth(monthYearStartPoint);
-		int currentWeekDay = getFirstDayOfMonth(monthYearStartPoint);
-		int firstOffset = getFirstOffset(currentWeekDay, monthYearStartPoint);
-		System.out.printf("%s", " ".repeat(firstOffset));
-		for(int day = 1; day <= nDays; day++) {
-			System.out.printf("%" + COLUMN_WIDTH +"d", day);
-			if(currentWeekDay == weekDays.length) {
-				currentWeekDay = 0;
-				System.out.println();
-			}
-			currentWeekDay++;
-		}
-		
+//ready
+	private static void printDays(MonthYearStartPoint monthYearStartPoint) {	 
+	    int nDays = getDaysInMonth(monthYearStartPoint);
+	    int currentWeekDay = getFirstDayOfMonth(monthYearStartPoint);
+	    int firstOffset = getFirstOffset(currentWeekDay, monthYearStartPoint);
+	    System.out.printf("%s", " ".repeat(firstOffset));
+	    for(int day = 1; day <= nDays; day++) {
+	        System.out.printf("%" + COLUMN_WIDTH +"d", day);
+	        currentWeekDay++;
+	        int startPointIndex = getStartIndex(monthYearStartPoint);
+	        if ((currentWeekDay-1-startPointIndex) % 7 == 0) {
+	            System.out.println();
+	        }
+	    }
 	}
+
 //ready
 	private static int getFirstOffset(int currentWeekDay, MonthYearStartPoint monthYearStartPoint) {
 	    int startPointIndex = getStartIndex(monthYearStartPoint); ;
